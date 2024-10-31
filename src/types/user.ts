@@ -4,7 +4,7 @@ export interface UserInfo {
   phoneNumber: string;
   addresses: Address[];
   defaultAddressIndex: number;
-  updatedAt:any
+  updatedAt:any // eslint-disable-line @typescript-eslint/no-explicit-any
 }
 
 export interface Address {

@@ -1,7 +1,7 @@
 export interface Order {
     id: string;
     subtotal: number;
-    createdAt:any;
+    createdAt:any;// eslint-disable-line @typescript-eslint/no-explicit-any
     shippingCost: number;
     customerId: string;
     total: number;

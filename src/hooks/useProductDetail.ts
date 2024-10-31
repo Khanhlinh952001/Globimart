@@ -3,9 +3,7 @@ import { fireStore } from "@/libs/firebase";
 import { doc, getDoc } from 'firebase/firestore';
 import { Product } from '@/types/products';
 
-interface UseProductProps {
-  id: string;
-}
+
 
 interface UseProductReturn {
   product: Product | null;
