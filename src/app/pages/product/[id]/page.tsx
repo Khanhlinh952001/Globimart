@@ -2,15 +2,76 @@
 
 import { useState } from 'react'
 import { Star, ShoppingCart, Heart, Share2, ChevronLeft, ChevronRight, Check } from 'lucide-react'
+import { FaStar } from "react-icons/fa";
 import MainLayout from '@/layouts/main';
 import { useProduct } from '@/hooks/useProductDetail';
 import { useParams } from 'next/navigation';
+import { useProducts } from '@/hooks/useProducts';
+import { useCart } from '@/contexts/cartProvider';
+import { useRouter } from 'next/navigation';
+import { Loading } from '@/app/components/ui/Loading';
+import Card from '@/app/components/ui/Card';
+import { CardItem } from '@/types/card';
+import RenderHTML from '@/app/components/RenderHTML';
+// Add this dummy data somewhere at the top of your file, outside the component
+const dummyReviews = [
+  {
+    rating: 5,
+    title: "Sản phẩm tuyệt vời!",
+    author: "Nguyễn Văn A",
+    date: "15/05/2023",
+    content: "Tôi rất hài lòng với sản phẩm này. Chất lượng tốt và giá cả phải chăng."
+  },
+  {
+    rating: 4,
+    title: "Khá ổn",
+    author: "Trần Thị B",
+    date: "10/05/2023",
+    content: "Sản phẩm tốt, nhưng có thể cải thiện thêm về đóng gói."
+  },
+  {
+    rating: 5,
+    title: "Tuyệt vời ông mặt trời!",
+    author: "Lê Văn C",
+    date: "05/05/2023",
+    content: "Đây là một trong những sản phẩm tốt nhất mà tôi từng mua. Rất đáng giá!"
+  },
+  {
+    rating: 3,
+    title: "Bình thường",
+    author: "Phạm Thị D",
+    date: "01/05/2023",
+    content: "Sản phẩm ổn, nhưng không có gì đặc biệt. Có thể cải thiện thêm."
+  },
+  {
+    rating: 5,
+    title: "Rất hài lòng",
+    author: "Hoàng Văn E",
+    date: "25/04/2023",
+    content: "Chất lượng sản phẩm vượt quá mong đợi của tôi. Sẽ mua lại!"
+  },
+  {
+    rating: 4,
+    title: "Tốt",
+    author: "Đỗ Thị F",
+    date: "20/04/2023",
+    content: "Sản phẩm tốt, giao hàng nhanh. Chỉ có điều giá hơi cao."
+  },
+];
 
 export default function ProductDetail() {
   // Lấy tham số từ URL
   const params = useParams();
   const id = params.id;
-
+  const { addToCart } = useCart();
+  // Ensure id is a string before using it with the hook
+  const { product, loading, error } = useProduct(id as string);
+  const { products } = useProducts();
+  const router = useRouter();
+  const relatedProducts = products
+    .filter(p => p.category === product?.category && p.id !== product.id)
+     .slice(0, 10);
+   console.log(product?.rating)
   // Kiểm tra xem id có phải là chuỗi không
   if (typeof id !== 'string') {
     return (
@@ -22,19 +83,27 @@ export default function ProductDetail() {
     );
   }
 
-  // Sử dụng hook với id đảm bảo là chuỗi
-  const { product, loading, error } = useProduct(id);
-  console.log(product)
+
   const [currentImage, setCurrentImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState('details');
+  const [selectedColor, setSelectedColor] = useState(product?.colors[0] || '');
+  const [selectedSize, setSelectedSize] = useState(product?.sizes[0] || '');
+  const [isLiked, setIsLiked] = useState(false);
+
+  const [displayedReviews, setDisplayedReviews] = useState(5);
+  const [reviews, setReviews] = useState(dummyReviews);
+
+  const handleViewMore = () => {
+    setDisplayedReviews(prevCount => Math.min(prevCount + 5, reviews.length));
+  };
 
   // Xử lý khi sản phẩm đang được tải hoặc có lỗi
-  if (loading) {
+  if (loading || !product) {
     return (
       <MainLayout>
-        <div className="min-h-screen flex items-center justify-center">
-          <p>Loading...</p>
+        <div className="min-h-screen flex items-center bg-background justify-center">
+         <Loading/>
         </div>
       </MainLayout>
     );
@@ -65,23 +134,54 @@ export default function ProductDetail() {
     setQuantity(value);
   }
 
-  const addToCart = () => {
-    // Thêm sản phẩm vào giỏ hàng
-    console.log(`Added ${quantity} of ${product.productName} to cart.`);
+  const handleAddToCart = () => {
+    if (product) {
+      addToCart({
+        id: product.id,
+        productName: product.productName,
+        price: product.sales, // Using the sale price
+        image: product.images[0],
+        quantity: quantity,
+        detailPage:product.detailPage,
+        storeId:product.storeId,
+        color: selectedColor,
+        size: selectedSize,
+      });
+      console.log(`Added ${quantity} of ${product.productName} to cart.`);
+    }
+  }
+
+  const handleLike = () => {
+    setIsLiked(!isLiked);
+    // Here you could also implement logic to save the like status to a backend or local storage
+  }
+
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+
+        url: window.location.href,
+      })
+        .then(() => console.log('Successful share'))
+        .catch((error) => console.log('Error sharing', error));
+    } else {
+      // Fallback for browsers that don't support the Web Share API
+      alert(`Share this product: ${window.location.href}`);
+    }
   }
 
   return (
     <MainLayout>
       <div className="min-h-screen bg-white">
         {/* Main Content */}
-        <main className="container mx-auto mt-8 px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <main className="container mx-auto pt-8 px-4 text-foreground">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Image Section */}
             <div className="relative grid place-items-center">
               <img
                 src={product.images[currentImage]}
                 alt={`${product.productName} - Image ${currentImage + 1}`}
-                className="w-[300px] h-auto rounded-lg shadow-md"
+                className="w-full max-w-[300px] h-auto rounded-lg shadow-md"
               />
               {/* Previous Button */}
               <button
@@ -109,48 +209,96 @@ export default function ProductDetail() {
               </div>
             </div>
 
-
-
             {/* Product Information */}
-            <div>
-              <h1 className="text-3xl font-bold mb-4">{product.productName}</h1>
+            <div className="space-y-4">
+              <h1 className="text-2xl sm:text-3xl font-bold">{product.productName}</h1>
               <div className="flex items-center mb-4">
                 <div className="flex items-center mr-4">
                   {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`h-5 w-5 ${i < Math.floor(Number(product.rating)) ? 'text-yellow-400' : 'text-gray-300'}`}
-                    />
-
-
+                    <div>
+                      <FaStar
+                        key={i}
+                        className={`h-5 w-5 ${i < (Number(product?.rating) ?? 0) ? 'text-yellow-400' : 'text-gray-300'}`}
+                      />
+                    </div>
                   ))}
+                  
                 </div>
                 <span className="text-sm text-gray-600">
                   {product.rating} ({product.reviews} reviews)
                 </span>
               </div>
-              <p className="text-2xl font-bold mb-4">{product.price.toLocaleString('vi-VN')}₫</p>
-              <p className="mb-6">{product.description}</p>
-              <div className="flex items-center mb-6">
+              <div className='flex'>
+                <p className="text-md ml-3 mt-2 line-through mb-4">{product.price.toLocaleString('vi-VN')}₫</p><span className="text-2xl font-bold mb-4">{product.sales.toLocaleString('vi-VN')}₫</span>
+
+
+              </div>
+              {/* Color options */}
+              {product.colors && product.colors.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-medium text-gray-900 mb-2">Color</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {product.colors.map((color) => (
+                      <button
+                        key={color}
+                        className={`w-5 h-5 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${selectedColor === color ? 'ring-2 ring-blue-500' : ''
+                          } ${color.toLowerCase() === 'white' ? 'border border-gray-300' : ''}`}
+                        style={{ backgroundColor: color }}
+                        onClick={() => setSelectedColor(color)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Size options */}
+              {product.sizes && product.sizes.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-medium text-gray-900 mb-2">Size</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {product.sizes.map((size) => (
+                      <button
+                        key={size}
+                        className={`px-3 text-sm py-1 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${selectedSize === size
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-white text-gray-900 hover:bg-gray-100'
+                          }`}
+                        onClick={() => setSelectedSize(size)}
+                      >
+                        {size}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <p>{product.description}</p>
+              <div className="flex flex-wrap items-center gap-4">
                 <input
                   type="number"
                   min="1"
                   max={product.stock}
                   value={quantity}
                   onChange={handleQuantityChange}
-                  className="w-20 mr-4 border border-gray-300 rounded px-2 py-1"
+                  className="w-20 border border-gray-300 rounded px-2 py-1"
                 />
                 <button
                   className="bg-blue-600 text-white hover:bg-blue-700 flex items-center px-4 py-2 rounded"
-                  onClick={addToCart}
+                  onClick={handleAddToCart}
                 >
                   <ShoppingCart className="mr-2 h-4 w-4" />
                   Add to Cart
                 </button>
-                <button className="ml-4 border border-gray-300 rounded p-2 hover:bg-gray-100">
-                  <Heart className="h-4 w-4" />
+                <button
+                  className={`border border-gray-300 rounded p-2 hover:bg-gray-100 ${isLiked ? 'text-red-500' : ''}`}
+                  onClick={handleLike}
+                >
+                  <Heart className="h-4 w-4" fill={isLiked ? 'currentColor' : 'none'} />
                 </button>
-                <button className="ml-2 border border-gray-300 rounded p-2 hover:bg-gray-100">
+                <button
+                  className="border border-gray-300 rounded p-2 hover:bg-gray-100"
+                  onClick={handleShare}
+                >
                   <Share2 className="h-4 w-4" />
                 </button>
               </div>
@@ -162,20 +310,23 @@ export default function ProductDetail() {
               <p className="text-sm text-gray-600 mb-4">Category
                 : {product.category
                 }</p>
+
+
             </div>
           </div>
 
           {/* Tabs */}
           <div className="mt-12">
             {/* Tab List */}
-            <div className="flex border-b">
+            <div className="flex flex-wrap border-b">
               {['details', 'reviews', 'shipping'].map((tab) => (
                 <button
                   key={tab}
-                  className={`py-2 px-4 -mb-px border-b-2 font-medium text-sm focus:outline-none ${activeTab === tab
-                    ? 'border-blue-600 text-blue-600'
-                    : 'border-transparent text-gray-600 hover:text-blue-600 hover:border-blue-600'
-                    }`}
+                  className={`py-2 px-4 -mb-px border-b-2 font-medium text-sm focus:outline-none ${
+                    activeTab === tab
+                      ? 'border-blue-600 text-blue-600'
+                      : 'border-transparent text-gray-600 hover:text-blue-600 hover:border-blue-600'
+                  }`}
                   onClick={() => setActiveTab(tab)}
                 >
                   {tab === 'details' && 'Thông tin sản phẩm'}
@@ -189,7 +340,7 @@ export default function ProductDetail() {
 
               {activeTab === 'details' && (
                 <div>
-                  <h2 className="text-xl font-bold mb-4">Features</h2>
+                  <h2 className="text-xl font-bold mb-4">Đặc trưng</h2>
                   <ul className="list-none pl-0">
                     {product && Array.isArray(product.features) && product.features.map((feature, index) => (
                       <li key={index} className="mb-2 flex items-center">
@@ -204,62 +355,83 @@ export default function ProductDetail() {
 
               {activeTab === 'reviews' && (
                 <div className="space-y-4">
-                  {[...Array(3)].map((_, index) => (
+                  <h2 className="text-xl font-bold mb-4">Tất cả đánh giá</h2>
+                  {reviews.slice(0, displayedReviews).map((review, index) => (
                     <div key={index} className="border-b pb-4">
                       <div className="flex items-center mb-2">
                         <div className="flex items-center mr-2">
                           {[...Array(5)].map((_, i) => (
-                            <Star
+                            <FaStar
                               key={i}
-                              className={`h-4 w-4 ${i < 4 ? 'text-yellow-400' : 'text-gray-300'}`}
+                              className={`h-4 w-4 ${i < review.rating ? 'text-yellow-400' : 'text-gray-300'}`}
                             />
                           ))}
                         </div>
-                        <span className="font-semibold">Great coffee!</span>
+                        <span className="font-semibold">{review.title}</span>
                       </div>
-                      <p className="text-sm text-gray-600 mb-2">By John Doe on May 1, 2023</p>
-                      <p>This coffee is amazing! Rich flavor and perfect for my morning espresso.</p>
+                      <p className="text-sm text-gray-600 mb-2">Bởi {review.author} vào {review.date}</p>
+                      <p>{review.content}</p>
                     </div>
                   ))}
+                  {displayedReviews < reviews.length && (
+                    <button 
+                      className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
+                      onClick={handleViewMore}
+                    >
+                      Xem thêm
+                    </button>
+                  )}
                 </div>
               )}
 
               {activeTab === 'shipping' && (
                 <div>
-                  <h2 className="text-xl font-bold mb-4">Shipping Information</h2>
+                  <h2 className="text-xl font-bold mb-4">Thông tin vận chuyển</h2>
                   <p className="mb-4">
-                    We offer free shipping on all orders over 1,000,000₫. Standard shipping typically takes 3-5
-                    business days.
+                    Chúng tôi cung cấp miễn phí vận chuyển cho tất cả đơn hàng trên 1.000.000₫. Thời gian vận chuyển tiêu chuẩn thường mất 3-5 ngày làm việc.
                   </p>
-                  <h2 className="text-xl font-bold mb-4">Returns Policy</h2>
+                  <h2 className="text-xl font-bold mb-4">Chính sách đổi trả</h2>
                   <p>
-                    If you're not satisfied with your purchase, you can return it within 30 days for a full refund.
-                    Please note that the product must be unopened and in its original packaging.
+                    Nếu bạn không hài lòng với sản phẩm đã mua, bạn có thể trả li trong vòng 30 ngày để được hoàn tiền đầy đủ. Xin lưu ý rằng sản phẩm phải chưa được mở và còn nguyên trong bao bì gốc.
                   </p>
                 </div>
               )}
             </div>
           </div>
 
+          <div className='mt-8'>
+            {
+              product.introducing ? <div>
+                <h1 className='text-xl font-bold mb-4'>Giới thiệu sản phẩm</h1>
+                 <RenderHTML htmlContent={product.introducing ?? ''} />
+              </div>   :<div></div>
+            }
+          
+          </div>
+
           {/* Related Products */}
           <section className="mt-12">
-            <h2 className="text-2xl font-bold mb-6">Related Products</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {[...Array(4)].map((_, index) => (
-                <div key={index} className="bg-white rounded-lg shadow-md overflow-hidden">
-                  <img
-                    src={`/placeholder.svg?height=200&width=200&text=Related+${index + 1}`}
-                    alt={`Related Product ${index + 1}`}
-                    className="w-full h-48 object-cover"
-                  />
-                  <div className="p-4">
-                    <h3 className="font-semibold text-lg mb-2">Related Coffee Product {index + 1}</h3>
-                    <p className="text-blue-600 font-bold">299,000₫</p>
-                    <button className="mt-2 w-full border border-gray-300 rounded px-4 py-2 hover:bg-gray-100">
-                      View Details
-                    </button>
-                  </div>
-                </div>
+            <h2 className="text-2xl font-bold mb-6">Sản phẩm liên quan</h2>
+            <div className="flex flex-wrap space-x-2">
+              {relatedProducts.map((relatedProduct) => (
+                  <Card key={relatedProduct.id} item={relatedProduct as unknown as CardItem} />
+                // <div key={relatedProduct.id} className="bg-white rounded-lg shadow-md overflow-hidden">
+                //   <img
+                //     src={relatedProduct.images[0]}
+                //     alt={relatedProduct.productName}
+                //     className="w-full h-48 object-cover"
+                //   />
+                //   <div className="p-4">
+                //     <h3 className="font-semibold text-lg mb-2">{relatedProduct.productName}</h3>
+                //     <p className="text-blue-600 font-bold">{relatedProduct.price.toLocaleString('vi-VN')}₫</p>
+                //     <button
+                //       className="mt-2 w-full border border-gray-300 rounded px-4 py-2 hover:bg-gray-100"
+                //       onClick={() => router.push(`/pages/product/${relatedProduct.id}`)}
+                //     >
+                //       View Details
+                //     </button>
+                //   </div>
+                // </div>
               ))}
             </div>
           </section>

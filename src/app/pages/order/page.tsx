@@ -1,7 +1,7 @@
 "use client"
 import { useState } from 'react'
 import { CreditCard, Truck, Package, CheckCircle } from 'lucide-react'
-
+import { useOrder } from '@/hooks/useOrder'
 
 export default function OrderPage() {
   const [paymentMethod, setPaymentMethod] = useState('credit-card')

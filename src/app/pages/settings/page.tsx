@@ -17,14 +17,14 @@ export default function SettingsPage() {
 
   return (
     <MainLayout>
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-white text-foreground-secondary">
         <main className="container mx-auto pt-8 px-4">
-          <h1 className="text-3xl font-bold mb-8">Settings</h1>
+          <h1 className="text-3xl font-bold mb-8 text-foreground">Settings</h1>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="md:col-span-2">
               <section className="bg-white p-6 rounded-lg shadow-md mb-8">
-                <h2 className="text-2xl font-semibold mb-4 flex items-center">
+                <h2 className="text-2xl font-semibold mb-4 flex items-center text-foreground">
                   <User className="mr-2 h-6 w-6 text-[#007BFF]" />
                   Account Settings
                 </h2>
@@ -42,7 +42,7 @@ export default function SettingsPage() {
               </section>
 
               <section className="bg-white p-6 rounded-lg shadow-md mb-8">
-                <h2 className="text-2xl font-semibold mb-4 flex items-center">
+                <h2 className="text-2xl text-foreground font-semibold mb-4 flex items-center">
                   <Bell className="mr-2 h-6 w-6 text-[#007BFF]" />
                   Notification Preferences
                 </h2>
@@ -59,13 +59,13 @@ export default function SettingsPage() {
               </section>
 
               <section className="bg-white p-6 rounded-lg shadow-md mb-8">
-                <h2 className="text-2xl font-semibold mb-4 flex items-center">
+                <h2 className="text-2xl text-foreground font-semibold mb-4 flex items-center">
                   <Globe className="mr-2 h-6 w-6 text-[#007BFF]" />
                   Language and Region
                 </h2>
                 <div className="space-y-4">
                   <div>
-                    <label htmlFor="language" className="block font-medium">Language</label>
+                    <label htmlFor="language" className="block font-medium ">Language</label>
                     <select value={language} onChange={(e) => setLanguage(e.target.value)} className="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
                       <option value="english">English</option>
                       <option value="vietnamese">Vietnamese</option>
@@ -86,7 +86,7 @@ export default function SettingsPage() {
 
             <div className="md:col-span-1">
               <section className="bg-white p-6 rounded-lg shadow-md mb-8">
-                <h2 className="text-2xl font-semibold mb-4 flex items-center">
+                <h2 className="text-2xl text-foreground font-semibold mb-4 flex items-center">
                   <Sun className="mr-2 h-6 w-6 text-[#007BFF]" />
                   Appearance
                 </h2>
@@ -97,7 +97,7 @@ export default function SettingsPage() {
               </section>
 
               <section className="bg-white p-6 rounded-lg shadow-md mb-8">
-                <h2 className="text-2xl font-semibold mb-4 flex items-center">
+                <h2 className="text-2xl font-semibold mb-4 flex text-foreground items-center">
                   <Lock className="mr-2 h-6 w-6 text-[#007BFF]" />
                   Privacy
                 </h2>

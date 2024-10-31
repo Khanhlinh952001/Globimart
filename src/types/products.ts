@@ -12,10 +12,11 @@ export type Product = {
   storeId: string;
   sku?:string;
   features:string[];
-  rating?:string ;
+  rating?:number ;
   reviews?:string[];
   detailPage: string;
   productName: string;
+  introducing?:string;
   description: string;
   sizes: string[];
   star?:number;
