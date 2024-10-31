@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Star, ShoppingCart, Heart, Share2, ChevronLeft, ChevronRight, Check } from 'lucide-react'
 import { FaStar } from "react-icons/fa";
 import MainLayout from '@/layouts/main';
@@ -59,15 +59,6 @@ const dummyReviews = [
   },
 ];
 
-// Add interfaces for the review and product types at the top of the file
-interface Review {
-  rating: number;
-  title: string;
-  author: string;
-  date: string;
-  content: string;
-}
-
 export default function ProductDetail() {
   // Lấy tham số từ URL
   const params = useParams();
@@ -92,6 +83,7 @@ export default function ProductDetail() {
     );
   }
 
+
   const [currentImage, setCurrentImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState('details');
@@ -100,7 +92,7 @@ export default function ProductDetail() {
   const [isLiked, setIsLiked] = useState(false);
 
   const [displayedReviews, setDisplayedReviews] = useState(5);
-  const [reviews, setReviews] = useState<Review[]>(dummyReviews);
+  const [reviews, setReviews] = useState(dummyReviews);
 
   const handleViewMore = () => {
     setDisplayedReviews(prevCount => Math.min(prevCount + 5, reviews.length));

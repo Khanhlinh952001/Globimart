@@ -6,7 +6,6 @@ import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { usePathname } from 'next/navigation';
 import toast from 'react-hot-toast';
-
 interface CartItem {
   id: string;
   productName: string;
@@ -80,6 +79,9 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       console.error('Cannot add undefined item to cart');
       toast.error('Không thể thêm sản phẩm vào giỏ hàng');
       return;
+    }
+    if(!user){
+      return router.push('/auth/login')
     }
 
     setCart(prevCart => {
